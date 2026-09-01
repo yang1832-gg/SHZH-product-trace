@@ -10,12 +10,14 @@ jobs:
   import:
     runs-on: ubuntu-latest
     steps:
-      - name: Mirror the original repository
-        env:
-          TOKEN: ${{ github.token }}
-          TARGET_REPOSITORY: ${{ github.repository }}
+      - uses: actions/checkout@v4
+      - name: Copy the original repository
         run: |
-          git clone --mirror https://github.com/yang1832-gg/product-trace.git source.git
-          cd source.git
-          git remote set-url origin "https://x-access-token:${TOKEN}@github.com/${TARGET_REPOSITORY}.git"
-          git push --mirror
+          git clone --depth 1 https://github.com/yang1832-gg/product-trace.git /tmp/source
+          rsync -a --exclude=.git /tmp/source/ "$GITHUB_WORKSPACE/"
+          rm -f .github/workflows/import-source.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Import original product trace site"
+          git push origin HEAD:main
